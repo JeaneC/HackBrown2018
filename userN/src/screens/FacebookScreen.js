@@ -114,8 +114,12 @@ class FacebookScreen extends Component {
 			if (name == 'John Carlos') {
 				console.log('this is john');
 				token2 = this.state.token1;
+				this.leave();
+				return;
 			} else if ((name = 'Jiayi Lily Ma')) {
 				token2 = this.state.token2;
+				this.leave();
+				return;
 			} else {
 				// WE NEED TO JUST
 				this.leave();

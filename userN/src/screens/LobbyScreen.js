@@ -153,7 +153,39 @@ class LobbyScreen extends Component {
 		const response = await fetch(
 			`https://watson-api-explorer.mybluemix.net/natural-language-understanding/api/v1/analyze?version=2017-02-27&text="${dataFeed}"&features=categories`
 		);
-		console.log(response);
+		// let result = JSON.parse(response);
+		console.log(response._bodyInit);
+		let result = JSON.parse(response._bodyInit);
+		let { categories } = result;
+
+		let lilyList = [];
+
+		categories.map(({ label }) => {
+			lilyList.push(label);
+		});
+
+		let final = this.returnCategories(lilyList);
+
+		if (final) {
+			cardStack = [
+				{
+					feedback: [0, 1],
+					name: final[0],
+					time: 20
+				},
+				{
+					feedback: [0, 1],
+					name: final[1],
+					time: 20
+				},
+				{
+					feedback: [0, 1],
+					name: final[2],
+					time: 20
+				}
+			];
+		}
+
 		await database.ref(`Session/${this.state.key}/cardStack`).set(cardStack);
 		await database.ref(`Session/${this.state.key}/started`).set(true);
 
@@ -273,6 +305,63 @@ class LobbyScreen extends Component {
 			this.props.navigation.navigate('card');
 		});
 	};
+
+	returnCategories = inputArray => {
+		const topics = [
+			'Clothes',
+			'News',
+			'Sports',
+			'Music',
+			'Movies',
+			'Food',
+			'Books',
+			'Travel'
+		];
+
+		var categoryArray = [];
+
+		for (i = 0; i < inputArray.length; i++) {
+			var tmp = inputArray[i].split('/');
+			for (j = 0; j < tmp.length; j++) {
+				var categoryName = tmp[j];
+				if (categoryName.length !== 0 && categoryName.length <= 10) {
+					categoryArray.push(
+						categoryName.charAt(0).toUpperCase() + categoryName.slice(1)
+					);
+				}
+			}
+		}
+
+		var threeCategories = new Set();
+		var categoryCount = categoryArray.length;
+		var c = 0;
+
+		while (threeCategories.size < 3 && categoryCount > 0) {
+			if (!threeCategories.has(categoryArray[c])) {
+				threeCategories.add(categoryArray[c]);
+			}
+			c++;
+			categoryCount--;
+		}
+
+		if (threeCategories.size < 3) {
+			var toAdd = 3 - threeCategories.size;
+
+			for (l = 0; l < toAdd; l++) {
+				var n = this.randomGenerate(topics);
+				if (threeCategories.has(topics[n])) threeCategories.add('Art');
+				else threeCategories.add(topics[n]);
+			}
+		}
+
+		return Array.from(threeCategories);
+	};
+
+	randomGenerate = topicsArray => {
+		var ranNum = Math.floor(Math.random() * topicsArray.length);
+		return ranNum;
+	};
+
 	render() {
 		const config = {
 			velocityThreshold: 0.3,
